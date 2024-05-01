@@ -10,7 +10,7 @@ Some time ago I had time to research router, the router I used for this research
 
 In this research I found a blind command injection vulnerability in the traceroute feature. Blind command injection is a vulnerability that allows an attacker to execute operating system commands on the server that is running an application and application does not return the output from the command. So, Tenda O3V2 have diagnostic tool which includes traceroute but the ip address or domain input is not validated properly and allows the user to perform blind command injection. To perform blind command injection, the attacker needs admin access on the dashboard, but TendaO3V2 have default credential which is admin:admin, so if the user does not change the password then we can perform out blind command injection, and if the user has change password we still can bruteforce it until we got access in dashboard.
 
-We need to retrieve the httpd binary from the router for disassembly and decompilation. There are two methods that can be used: first, by extracting the firmware (from the official website), and second, by directly accessing it from the live or active router. When using the first method to extract the firmware, no filesystem is found in the firmware, i dont know why, possibly due to encryption, obfuscation, or packing in the firmware (my skill issue :( ). Then, when attempting the second method via UART, I failed to solder onto its three pins (RX, TX, and GND) resulting in burnt pin and the pin slightly peeled off (once again, my skill issue). Therefore, I enabled telnet through the dashboard (by default, telnet is disabled, and telnet credentials can be found on the internet) to gain shell access with root privileges. After obtaining shell access with root privileges, we can retrieve the httpd binary for analysis to identify vulnerabilities within it.
+We need to retrieve the httpd binary from the router for disassembly and decompilation. There are two methods that can be used: first, by extracting the firmware (download from the official website, the vulnerable firmware version is v1.0.0.12), and second, by directly accessing it from the live or active router. When using the first method to extract the firmware, no filesystem is found in the firmware, i dont know why, possibly due to encryption, obfuscation, or packing in the firmware (my skill issue :( ). Then, when attempting the second method via UART, I failed to solder onto its three pins (RX, TX, and GND) resulting in burnt pin and the pin slightly peeled off (once again, my skill issue). Therefore, I enabled telnet through the dashboard (by default, telnet is disabled, and telnet credentials can be found on the internet) to gain shell access with root privileges. After obtaining shell access with root privileges, we can retrieve the httpd binary for analysis to identify vulnerabilities within it.
 
 ### Exploitation
 
@@ -81,7 +81,7 @@ When this article was published, Tenda had already released new firmware for thi
 ![is_valid_ip_or_domain Function](/assets/img/Blind-Command-Injection-in-Tenda-O3V2/is_valid_ip_or_domain.png)
 
 
-They still haven't released the new firmware to the public so you can download the latest firmware here.
+They still haven't released the new firmware to the public but you can download the latest firmware [here](https://drive.google.com/file/d/1687UGmpNgmPnvOeJtIuDvoEUrDh7VSKZ/view?usp=sharing){:target="_blank"}{:rel="noopener noreferrer"}
 
 
 ### Timeline
