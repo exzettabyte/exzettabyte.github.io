@@ -1,7 +1,7 @@
 [
   
     {
-      "title"    : "Blind Command Injection in Tenda O3V2",
+      "title"    : "CVE-2024-34338 - Blind Command Injection in Tenda O3V2",
       "description" : "",
       "tags"     : "research, hardware",
       "url"      : "/Blind-Command-Injection-in-Tenda-O3V2/",

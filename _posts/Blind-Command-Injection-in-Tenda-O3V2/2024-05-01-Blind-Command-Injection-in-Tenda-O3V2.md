@@ -1,5 +1,5 @@
 ---
-title: [CVE-2024-34338] Blind Command Injection in Tenda O3V2
+title: CVE-2024-34338 - Blind Command Injection in Tenda O3V2
 date: 2024-05-01 13:00:00 +07:00
 tags: [research, hardware]
 ---
@@ -90,5 +90,5 @@ They still haven't released the new firmware to the public but you can download 
 29 March 2024: Sent them the details of the vulnerability discovered.<br>
 30 March 2024: Vendor triage the vulnerability.<br>
 7 April 2024: Vendor release new firmware version 1.0.0.13(10751_5755).<br>
-8 April 2024: Retesting on the new firmware version and confirming the vulnerability has been fixed.
+8 April 2024: Retesting on the new firmware version and confirming the vulnerability has been fixed.<br>
 7 May 2024: CVE ID assigned
