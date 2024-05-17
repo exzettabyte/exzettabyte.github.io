@@ -1,5 +1,5 @@
 ---
-title: Blind Command Injection in Tenda O3V2
+title: [CVE-2024-34338] Blind Command Injection in Tenda O3V2
 date: 2024-05-01 13:00:00 +07:00
 tags: [research, hardware]
 ---
@@ -10,7 +10,7 @@ Some time ago I had time to research router, the router I used for this research
 
 In this research I found a blind command injection vulnerability in the traceroute feature. Blind command injection is a vulnerability that allows an attacker to execute operating system commands on the server that is running an application and application does not return the output from the command. So, Tenda O3V2 have diagnostic tool which includes traceroute but the ip address or domain input is not validated properly and allows the user to perform blind command injection. To perform blind command injection, the attacker needs admin access on the dashboard, but TendaO3V2 have default credential which is admin:admin, so if the user does not change the password then we can perform out blind command injection, and if the user has change password we still can bruteforce it until we got access in dashboard.
 
-We need to retrieve the httpd binary from the router for disassembly and decompilation. There are two methods that can be used: first, by extracting the firmware (download from the official website, the vulnerable firmware version is v1.0.0.12), and second, by directly accessing it from the live or active router. When using the first method to extract the firmware, no filesystem is found in the firmware, i dont know why, possibly due to encryption, obfuscation, or packing in the firmware (my skill issue :( ). Then, when attempting the second method via UART, I failed to solder onto its three pins (RX, TX, and GND) resulting in burnt pin and the pin slightly peeled off (once again, my skill issue). Therefore, I enabled telnet through the dashboard (by default, telnet is disabled, and telnet credentials can be found on the internet) to gain shell access with root privileges. After obtaining shell access with root privileges, we can retrieve the httpd binary for analysis to identify vulnerabilities within it.
+We need to retrieve the httpd binary from the router for static analysis to identify vulnerability within it. There are two methods that can be used: first, by extracting the firmware (download from the official website, the vulnerable firmware version is v1.0.0.12 and v1.0.0.10), and second, by directly accessing it from the live or active router. When using the first method to extract the firmware, no filesystem is found in the firmware, i dont know why, possibly due to encryption, obfuscation, packing in the firmware or something else (my skill issue :( ). Then, when attempting the second method via UART, I failed to solder onto its three pins (RX, TX, and GND) resulting in burnt pin and the pin slightly peeled off (once again, my skill issue). There is telnet on the router, we can use it, I enabled telnet through the dashboard (by default, telnet is disabled, and telnet credentials can be found on the internet) to gain shell access with root privileges. After obtaining shell access with root privileges, we can retrieve the httpd binary.
 
 ### Exploitation
 
@@ -91,3 +91,4 @@ They still haven't released the new firmware to the public but you can download 
 30 March 2024: Vendor triage the vulnerability.<br>
 7 April 2024: Vendor release new firmware version 1.0.0.13(10751_5755).<br>
 8 April 2024: Retesting on the new firmware version and confirming the vulnerability has been fixed.
+7 May 2024: CVE ID assigned
