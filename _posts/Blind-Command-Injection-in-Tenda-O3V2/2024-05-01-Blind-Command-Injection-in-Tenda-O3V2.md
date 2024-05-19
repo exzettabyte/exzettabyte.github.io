@@ -1,5 +1,5 @@
 ---
-title: CVE-2024-34338 - Blind Command Injection in Tenda O3V2
+title: CVE-2024-34338 - Blind Command Injection in Traceroute on Tenda O3V2
 date: 2024-05-01 13:00:00 +07:00
 tags: [research, hardware]
 ---
@@ -12,7 +12,7 @@ In this research I found a blind command injection vulnerability in the tracerou
 
 We need to retrieve the httpd binary from the router for static analysis to identify vulnerability within it. There are two methods that can be used: first, by extracting the firmware (download from the official website, the vulnerable firmware version is v1.0.0.12 and v1.0.0.10), and second, by directly accessing it from the live or active router. When using the first method to extract the firmware, no filesystem is found in the firmware, i dont know why, possibly due to encryption, obfuscation, packing in the firmware or something else (my skill issue :( ). Then, when attempting the second method via UART, I failed to solder onto its three pins (RX, TX, and GND) resulting in burnt pin and the pin slightly peeled off (once again, my skill issue). There is telnet on the router, we can use it, I enabled telnet through the dashboard (by default, telnet is disabled, and telnet credentials can be found on the internet) to gain shell access with root privileges. After obtaining shell access with root privileges, we can retrieve the httpd binary.
 
-### Exploitation
+### Vulnerability Analysis
 
 Open router’s httpd binary with Ghidra. In the fromTraceroutGet function, there is a call to the FUN_004758f4 function, which contains a function for executing the traceroute command. Within the FUN_004758f4 function, there is the doSystemCmd function (used to perform traceroute), and this function requires user input. It is evident in the uVar5 variable in the fromTraceroutGet function that there is no sanitization; this variable will later be passed to the doSystemCmd function, potentially leading to command injection.
 
@@ -74,7 +74,7 @@ with requests.Session() as session:
 
 ### Mitigation
 
-When this article was published, Tenda had already released new firmware for this device with firmware version 1.0.0.13(10751_5755). In this firmware version, the vulnerability has been fixed by implementing sanitization. Before entering the doSystemCmd function, user input will go through the is_valid_ip_or_domain function. If the input consists of numbers, it will return 1, then proceed to the doSystemCmd function, and the traceroute command will be executed.
+When this article was published, Tenda had already released new firmware for this device with firmware version 1.0.0.13(5755). In this firmware version, the vulnerability has been fixed by implementing sanitization. Before entering the doSystemCmd function, user input will go through the is_valid_ip_or_domain function. If the input consists of numbers, it will return 1, then proceed to the doSystemCmd function, and the traceroute command will be executed.
 
 ![Sanitization](/assets/img/Blind-Command-Injection-in-Tenda-O3V2/sanitization.png)
 
@@ -89,6 +89,6 @@ They still haven't released the new firmware to the public but you can download 
 28 March 2024: Vendor replied to directly contact to their email.<br>
 29 March 2024: Sent them the details of the vulnerability discovered.<br>
 30 March 2024: Vendor triage the vulnerability.<br>
-7 April 2024: Vendor release new firmware version 1.0.0.13(10751_5755).<br>
-8 April 2024: Retesting on the new firmware version and confirming the vulnerability has been fixed.<br>
+22 April 2024: Vendor release new firmware version 1.0.0.13(5755).<br>
+25 April 2024: Retesting on the new firmware version and confirming the vulnerability has been fixed.<br>
 7 May 2024: CVE ID assigned

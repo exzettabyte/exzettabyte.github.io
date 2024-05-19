@@ -1,7 +1,15 @@
 [
   
     {
-      "title"    : "CVE-2024-34338 - Blind Command Injection in Tenda O3V2",
+      "title"    : "Blind Command Injection in STP Service on Tenda O3V2",
+      "description" : "",
+      "tags"     : "research, hardware",
+      "url"      : "/blind-command-injection-in-stp-service-on-tenda-o3v2/",
+      "date"     : "2024-05-19 13:30:00 +0700"
+    } ,
+  
+    {
+      "title"    : "CVE-2024-34338 - Blind Command Injection in Traceroute on Tenda O3V2",
       "description" : "",
       "tags"     : "research, hardware",
       "url"      : "/Blind-Command-Injection-in-Tenda-O3V2/",
