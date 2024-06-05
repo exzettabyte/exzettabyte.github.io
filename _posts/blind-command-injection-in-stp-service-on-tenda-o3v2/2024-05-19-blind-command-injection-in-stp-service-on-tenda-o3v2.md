@@ -1,6 +1,6 @@
 ---
-title: Blind Command Injection in STP Service on Tenda O3V2
-date: 2024-05-19 13:30:00 +07:00
+title: CVE-2024-36604 - Blind Command Injection in STP Service on Tenda O3V2
+date: 2024-05-20 13:30:00 +07:00
 tags: [research, hardware]
 ---
 
@@ -54,3 +54,4 @@ They still haven't released the new firmware to the public but you can download 
 20 April 2024: Vendor triage the vulnerability.<br>
 22 April 2024: Vendor release new firmware version 1.0.0.13(5755).<br>
 25 April 2024: Retesting on the new firmware version and confirming the vulnerability has been fixed.<br>
+4 June 2024: CVE ID assigned
